@@ -129,9 +129,43 @@ window.onload = function () {
     }
   }
 
-  class Layer {}
+  class Layer {
+    constructor(game, image, speedModifier) {
+      this.game = game;
+      this.image = image;
+      this.speedModifier = speedModifier;
+      this.width = 1768;
+      this.height = 500;
+      this.x = 0;
+      this.y = 0;
+    }
 
-  class Background {}
+    update() {
+      if (this.x <= -this.width) this.x = 0;
+      else this.x -= this.game.gameSpeed * this.speedModifier;
+    }
+
+    draw(context) {
+      context.drawImage(this.image, this.x, this.y);
+    }
+  }
+
+  class Background {
+    constructor(game) {
+      this.game = game;
+      this.image1 = document.getElementById("layer1");
+      this.layer1 = new Layer(game, this.image1, 1);
+      this.layers = [this.layer1];
+    }
+
+    update() {
+      this.layers.forEach((layer) => layer.update());
+    }
+
+    draw(context) {
+      this.layers.forEach((layer) => layer.draw(context));
+    }
+  }
 
   class UI {
     constructor(game) {
@@ -154,6 +188,7 @@ window.onload = function () {
     constructor(width, height) {
       this.width = width;
       this.height = height;
+      this.background = new Background(this);
       this.player = new Player(this);
       this.inputHandler = new InputHandler(this);
       this.ui = new UI(this);
@@ -166,6 +201,7 @@ window.onload = function () {
       this.enemyTimer = 0;
       this.enemyInterval = 1000;
       this.gameOver = false;
+      this.gameSpeed = 1;
     }
 
     update(deltaTime) {

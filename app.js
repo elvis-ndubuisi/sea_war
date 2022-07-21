@@ -107,6 +107,8 @@ window.onload = function () {
       this.x = this.game.width;
       this.speedX = Math.random() * -1.5 - 0.5;
       this.markedForDeletion = false;
+      this.lives = 5;
+      this.score = this.lives;
     }
 
     update() {
@@ -117,6 +119,9 @@ window.onload = function () {
     draw(context) {
       context.fillStyle = "green";
       context.fillRect(this.x, this.y, this.width, this.height);
+      context.fillStyle = "black";
+      context.font = "20px Helvetica";
+      context.fillText(this.lives, this.x, this.y);
     }
   }
 
@@ -176,11 +181,48 @@ window.onload = function () {
     }
 
     draw(context) {
-      // ammo
+      // score
+      context.save();
       context.fillStyle = this.color;
+      context.shadowOffsetX = 2;
+      context.shadowOffsetY = 2;
+      context.shadowColor = "black";
+      context.font = this.fontSize + "px" + this.fontFamily;
+      context.fillText("Score " + this.game.score, 20, 40);
+      // ammo
       for (let i = 0; i < this.game.ammo; i++) {
         context.fillRect(20 + 5 * i, 50, 3, 20);
       }
+      // game timer
+      const formattedTime = (this.game.gameTime * 0.001).toFixed(1);
+      context.fillText("Timer: " + formattedTime, 20, 100);
+      // game over messages.
+      if (this.game.gameOver) {
+        context.textAlign = "center";
+        let message1;
+        let message2;
+
+        if (this.game.score > this.game.winningScore) {
+          message1 = "You Win!";
+          message2 = "Well done";
+        } else {
+          message1 = "You lose!";
+          message2 = "Try again";
+        }
+        context.font = "50px " + this.fontFamily;
+        context.fillText(
+          message1,
+          this.game.width * 0.5,
+          this.game.height * 0.5 - 40
+        );
+        context.font = "25px " + this.fontFamily;
+        context.fillText(
+          message2,
+          this.game.width * 0.5,
+          this.game.height * 0.5 + 40
+        );
+      }
+      context.restore();
     }
   }
 
@@ -202,9 +244,15 @@ window.onload = function () {
       this.enemyInterval = 1000;
       this.gameOver = false;
       this.gameSpeed = 1;
+      this.score = 0;
+      this.winningScore = 10;
+      this.gameTime = 0;
+      this.gameTimeLimit = 5000;
     }
 
     update(deltaTime) {
+      if (!this.gameOver) this.gameTime += deltaTime;
+      if (this.gameTime > this.gameTimeLimit) this.gameOver = true;
       this.player.update();
       if (this.ammoTimer > this.ammoInterval) {
         if (this.ammo < this.maxAmmo) this.ammo++;
@@ -215,6 +263,23 @@ window.onload = function () {
 
       this.enemies.forEach((enemy) => {
         enemy.update();
+        // check player to enemy collision.
+        if (this.checkCollision(this.player, enemy)) {
+          enemy.markedForDeletion = true;
+        }
+        // check projectile to enemy collision.
+        this.player.projectiles.forEach((projectile) => {
+          if (this.checkCollision(projectile, enemy)) {
+            enemy.lives--;
+            projectile.markedForDeletion = true;
+
+            if (enemy.lives <= 0) {
+              enemy.markedForDeletion = true;
+              if (!this.gameOver) this.score += enemy.score;
+              if (this.score > this.winningScore) this.gameOver = true;
+            }
+          }
+        });
       });
 
       this.enemies = this.enemies.filter((enemy) => !enemy.markedForDeletion);
@@ -237,6 +302,15 @@ window.onload = function () {
 
     addEnemy() {
       this.enemies.push(new Angler1(this));
+    }
+
+    checkCollision(rect1, rect2) {
+      return (
+        rect1.x < rect2.x + rect2.width &&
+        rect1.x + rect1.width > rect2.x &&
+        rect1.y < rect2.y + rect2.height &&
+        rect1.height + rect1.y > rect2.y
+      );
     }
   }
 

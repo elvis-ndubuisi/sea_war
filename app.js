@@ -98,23 +98,23 @@ window.onload = function () {
     }
 
     draw(context) {
-      context.save();
-      context.translate(this.x, this.y);
-      context.rotate(this.angle);
+      // context.save();
+      // context.translate(this.x, this.y);
+      // context.rotate(this.angle);
       context.drawImage(
         this.image,
         this.frameX * this.spriteSize,
         this.frameY * this.spriteSize,
         this.spriteSize,
         this.spriteSize,
-        0,
-        0,
-        this.size * -0.5,
-        this.size * -0.5,
+        // this.size * -0.5,
+        // this.size * -0.5,
+        this.x,
+        this.y,
         this.size,
         this.size
       );
-      context.restore();
+      // context.restore();
     }
   }
 
@@ -335,6 +335,23 @@ window.onload = function () {
     }
   }
 
+  class HiveWhaleDrone extends Enemy {
+    constructor(game, x, y) {
+      /* x, y == current position of destroyed hiveWhale */
+      super(game);
+      this.width = 115;
+      this.height = 95;
+      this.lives = 3;
+      this.score = this.lives;
+      this.type = "drone";
+      this.y = y;
+      this.x = x;
+      this.image = document.getElementById("hiveWhaleDrone");
+      this.frameY = Math.floor(Math.random() * 2);
+      this.speedX = Math.random() * -4.2 - 0.5;
+    }
+  }
+
   class Layer {
     constructor(game, image, speedModifier) {
       this.game = game;
@@ -481,7 +498,7 @@ window.onload = function () {
         // check player to enemy collision.
         if (this.checkCollision(this.player, enemy)) {
           enemy.markedForDeletion = true;
-          for (let i = 0; i < 5; i++) {
+          for (let i = 0; i < enemy.score; i++) {
             // particles
             this.particles.push(
               new Particle(
@@ -500,6 +517,7 @@ window.onload = function () {
           if (this.checkCollision(projectile, enemy)) {
             enemy.lives--;
             projectile.markedForDeletion = true;
+
             // particles
             this.particles.push(
               new Particle(
@@ -511,7 +529,27 @@ window.onload = function () {
 
             if (enemy.lives <= 0) {
               enemy.markedForDeletion = true;
-              for (let i = 0; i < 5; i++) {}
+              for (let i = 0; i < enemy.score; i++) {
+                this.particles.push(
+                  new Particle(
+                    this,
+                    enemy.x + enemy.width * 0.5,
+                    enemy.y + enemy.height * 0.5
+                  )
+                );
+              }
+              enemy.markedForDeletion = true;
+              if (enemy.type === "hiveWhale") {
+                for (let i = 0; i < 5; i++) {
+                  this.enemies.push(
+                    new HiveWhaleDrone(
+                      this,
+                      enemy.x + Math.random() * enemy.width,
+                      enemy.y + Math.random() * enemy.height * 0.5
+                    )
+                  );
+                }
+              }
               if (!this.gameOver) this.score += enemy.score;
               if (this.score > this.winningScore) this.gameOver = true;
             }
@@ -528,7 +566,7 @@ window.onload = function () {
         this.enemyTimer += deltaTime;
       }
 
-      // particles
+      // update particles
       this.particles.forEach((particle) => particle.update());
       this.particles = this.particles.filter(
         (particle) => !particle.markedForDeletion

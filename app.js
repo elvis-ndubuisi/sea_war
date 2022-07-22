@@ -545,7 +545,7 @@ window.onload = function () {
                     new HiveWhaleDrone(
                       this,
                       enemy.x + Math.random() * enemy.width,
-                      enemy.y + Math.random() * enemy.height * 0.5
+                      enemy.y + Math.random() * enemy.height * 0.6
                     )
                   );
                 }

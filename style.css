@@ -8,6 +8,7 @@ body {
   min-height: 100vh;
   background-color: rgb(224, 224, 224);
   position: relative;
+  /* add bangers font family */
 }
 
 canvas {
@@ -26,6 +27,12 @@ canvas {
 #layer1,
 #layer2,
 #layer3,
-#layer4 {
+#layer4,
+#player,
+#angler1,
+#angler2,
+#lucky,
+#projectile,
+#gears {
   display: none;
 }

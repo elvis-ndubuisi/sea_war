@@ -2,6 +2,8 @@ window.onload = function () {
   const canvas = document.getElementById("canvas1");
   const ctx = canvas.getContext("2d");
 
+  // TODO: add banger fonts from google fonts.
+
   canvas.width = 1500;
   canvas.height = 500;
 
@@ -16,6 +18,8 @@ window.onload = function () {
           this.game.keys.push(e.key);
         } else if (e.key === " ") {
           this.game.player.shootTop();
+        } else if (e.key === "d") {
+          this.game.debug = !this.game.debug;
         }
       });
 
@@ -36,6 +40,7 @@ window.onload = function () {
       this.height = 3;
       this.speed = 3;
       this.markedForDeletion = false;
+      this.image = document.getElementById("projectile");
     }
 
     update() {
@@ -44,12 +49,70 @@ window.onload = function () {
     }
 
     draw(context) {
-      context.fillStyle = "red";
-      context.fillRect(this.x, this.y, this.width, this.height);
+      // context.fillStyle = "red";
+      // context.fillRect(this.x, this.y, this.width, this.height);
+      if (this.game.debug) {
+        context.strokeStyle = "red";
+        context.strokeRect(this.x, this.y, this.width, this.height);
+      }
+      context.drawImage(this.image, this.x, this.y, this.width, this.height);
     }
   }
 
-  class Particle {}
+  class Particle {
+    constructor(game, x, y) {
+      this.game = game;
+      this.x = x;
+      this.y = y;
+      this.image = document.getElementById("gears");
+      this.frameX = Math.floor(Math.random() * 3);
+      this.frameY = Math.floor(Math.random() * 3);
+      this.spriteSize = 50;
+      this.sizeModifier = (Math.random() * 0.5 + 0.5).toFixed(1);
+      this.size = this.spriteSize * this.sizeModifier;
+      this.speedX = Math.random() * 6 - 3;
+      this.speedY = Math.random() * -15;
+      this.gravity = 0.5;
+      this.markedForDeletion = false;
+      this.angle = 0;
+      this.velocltyAngle = Math.random() * 0.2 - 0.1;
+      this.bounced = false;
+      this.bottomBounceBoundary = Math.random() * 100 + 60;
+    }
+
+    update() {
+      this.angle += this.velocltyAngle;
+      this.speedY += this.gravity;
+      this.x -= this.speedX;
+      this.y += this.speedY;
+
+      if (this.y > this.game.height + this.size || this.x < 0 - this.size)
+        this.markedForDeletion = true;
+      if (
+        this.y > this.game.height - this.bottomBounceBoundary &&
+        !this.bounced
+      ) {
+        this.bounced = true;
+        this.speedY *= -0.5;
+      }
+    }
+
+    draw(context) {
+      context.drawImage(
+        this.image,
+        this.frameX * this.spriteSize,
+        this.frameY * this.spriteSize,
+        this.spriteSize,
+        this.spriteSize,
+        this.x,
+        this.y,
+        this.size,
+        this.size
+      );
+    }
+
+    bounce() {}
+  }
 
   class Player {
     constructor(game) {
@@ -61,9 +124,16 @@ window.onload = function () {
       this.speedY = 0;
       this.maxSpeed = 2;
       this.projectiles = [];
+      this.image = document.getElementById("player");
+      this.frameX = 0;
+      this.frameY = 0;
+      this.maxFrame = 37;
+      this.powerUp = false;
+      this.powerUpTimer = 0;
+      this.powerUpLimit = 10000;
     }
 
-    update() {
+    update(deltaTime) {
       if (this.game.keys.includes("ArrowUp")) {
         this.speedY = -this.maxSpeed;
       } else if (this.game.keys.includes("ArrowDown")) {
@@ -79,14 +149,55 @@ window.onload = function () {
       this.projectiles = this.projectiles.filter((projectile) => {
         return !projectile.markedForDeletion;
       });
+      // sprite animation
+      if (this.frameX < this.maxFrame) {
+        this.frameX++;
+      } else {
+        this.frameX = 0;
+      }
+
+      // power up
+      if (this.powerUp) {
+        if (this.powerUpTimer > this.powerUpLimit) {
+          this.powerUpTimer = 0;
+          this.powerUp = false;
+          this.frameY = 0;
+        } else {
+          this.powerUpTimer += deltaTime;
+          this.frameY = 1;
+          this.game.ammo += 0.1;
+        }
+      }
+      /* Movement Boundaries */
+      // vertical boundary
+      if (this.y > this.game.height - this.height * 0.5)
+        this.y = this.game.height - this.height * 0.5;
+      else if (this.y < -this.height * 0.2) {
+        this.y = -this.height * 0.2;
+      }
     }
 
     draw(context) {
-      context.fillStyle = "yellow";
-      context.fillRect(this.x, this.y, this.width, this.height);
+      // context.fillStyle = "yellow";
+      // context.fillRect(this.x, this.y, this.width, this.height);
+      if (this.game.debug) {
+        context.strokeStyle = "gold";
+        context.strokeRect(this.x, this.y, this.width, this.height);
+      }
       this.projectiles.forEach((projectile) => {
         projectile.draw(context);
       });
+      context.drawImage(
+        this.image,
+        this.frameX * this.width,
+        this.frameY * this.height,
+        this.width,
+        this.height,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
     }
 
     shootTop() {
@@ -96,9 +207,23 @@ window.onload = function () {
         );
         this.game.ammo--;
       }
+      if (this.powerUp) this.shootBottom();
     }
 
-    shootBottom() {}
+    shootBottom() {
+      if (this.game.ammo > 0) {
+        this.projectiles.push(
+          new Projectile(this.game, this.x + 80, this.y + 175)
+        );
+        this.game.ammo--;
+      }
+    }
+
+    enterPowerUp() {
+      this.powerUpTimer = 0;
+      this.powerUp = true;
+      this.game.ammo = this.game.maxAmmo;
+    }
   }
 
   class Enemy {
@@ -107,30 +232,86 @@ window.onload = function () {
       this.x = this.game.width;
       this.speedX = Math.random() * -1.5 - 0.5;
       this.markedForDeletion = false;
-      this.lives = 5;
-      this.score = this.lives;
+
+      this.frameX = 0;
+      this.frameY = 0;
+      this.maxFrame = 37;
     }
 
     update() {
-      this.x += this.speedX;
+      this.x += this.speedX - this.game.gameSpeed;
       if (this.x + this.width < 0) this.markedForDeletion = true;
+      // sprite animation
+      if (this.frameX < this.maxFrame) {
+        this.frameX++;
+      } else {
+        this.frameX = 0;
+      }
     }
 
     draw(context) {
-      context.fillStyle = "green";
-      context.fillRect(this.x, this.y, this.width, this.height);
-      context.fillStyle = "black";
-      context.font = "20px Helvetica";
-      context.fillText(this.lives, this.x, this.y);
+      // context.fillStyle = "green";
+      // context.fillRect(this.x, this.y, this.width, this.height);
+      if (this.game.debug) {
+        context.strokeStyle = "gold";
+        context.strokeRect(this.x, this.y, this.width, this.height);
+        context.font = "20px Helvetica";
+        context.fillText(this.lives, this.x, this.y);
+      }
+      context.drawImage(
+        this.image,
+        this.frameX * this.width,
+        this.frameY * this.height,
+        this.width,
+        this.height,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+      // context.fillStyle = "black";
+      // context.font = "20px Helvetica";
+      // context.fillText(this.lives, this.x, this.y);
     }
   }
 
   class Angler1 extends Enemy {
     constructor(game) {
       super(game);
-      this.width = 228 * 0.3;
-      this.height = 169 * 0.3;
+      this.width = 228;
+      this.height = 169;
+      this.lives = 2;
+      this.score = this.lives;
       this.y = Math.random() * (this.game.height * 0.9 - this.height);
+      this.image = document.getElementById("angler1");
+      this.frameY = Math.floor(Math.random() * 3);
+    }
+  }
+
+  class Angler2 extends Enemy {
+    constructor(game) {
+      super(game);
+      this.width = 213;
+      this.height = 165;
+      this.lives = 3;
+      this.score = this.lives;
+      this.y = Math.random() * (this.game.height * 0.9 - this.height);
+      this.image = document.getElementById("angler2");
+      this.frameY = Math.floor(Math.random() * 2);
+    }
+  }
+
+  class LuckyFish extends Enemy {
+    constructor(game) {
+      super(game);
+      this.width = 99;
+      this.height = 95;
+      this.lives = 3;
+      this.score = 15;
+      this.type = "lucky";
+      this.y = Math.random() * (this.game.height * 0.9 - this.height);
+      this.image = document.getElementById("lucky");
+      this.frameY = Math.floor(Math.random() * 2);
     }
   }
 
@@ -152,6 +333,7 @@ window.onload = function () {
 
     draw(context) {
       context.drawImage(this.image, this.x, this.y);
+      context.drawImage(this.image, this.x + this.width, this.y);
     }
   }
 
@@ -160,7 +342,13 @@ window.onload = function () {
       this.game = game;
       this.image1 = document.getElementById("layer1");
       this.layer1 = new Layer(game, this.image1, 1);
-      this.layers = [this.layer1];
+      this.image2 = document.getElementById("layer1");
+      this.layer2 = new Layer(game, this.image2, 1);
+      this.image3 = document.getElementById("layer3");
+      this.layer3 = new Layer(game, this.image3, 1);
+      this.image4 = document.getElementById("layer4");
+      this.layer4 = new Layer(game, this.image4, 1);
+      this.layers = [this.layer1, this.layer2, this.layer3];
     }
 
     update() {
@@ -176,7 +364,7 @@ window.onload = function () {
     constructor(game) {
       this.game = game;
       this.fontSize = 25;
-      this.fontFamily = "Ubuntu";
+      this.fontFamily = "Ubuntu"; /* change fonts to bangers */
       this.color = "white";
     }
 
@@ -190,11 +378,13 @@ window.onload = function () {
       context.font = this.fontSize + "px" + this.fontFamily;
       context.fillText("Score " + this.game.score, 20, 40);
       // ammo
+      if (this.game.player.powerUp) context.fillStyle = "gold";
       for (let i = 0; i < this.game.ammo; i++) {
         context.fillRect(20 + 5 * i, 50, 3, 20);
       }
       // game timer
       const formattedTime = (this.game.gameTime * 0.001).toFixed(1);
+      context.fillStyle = "white";
       context.fillText("Timer: " + formattedTime, 20, 100);
       // game over messages.
       if (this.game.gameOver) {
@@ -203,11 +393,11 @@ window.onload = function () {
         let message2;
 
         if (this.game.score > this.game.winningScore) {
-          message1 = "You Win!";
-          message2 = "Well done";
+          message1 = "Most Wondrous!";
+          message2 = "Well done explorer";
         } else {
-          message1 = "You lose!";
-          message2 = "Try again";
+          message1 = "Blazes!";
+          message2 = "Get my repair kit and try again";
         }
         context.font = "50px " + this.fontFamily;
         context.fillText(
@@ -247,13 +437,17 @@ window.onload = function () {
       this.score = 0;
       this.winningScore = 10;
       this.gameTime = 0;
-      this.gameTimeLimit = 5000;
+      this.gameTimeLimit = 15000;
+      this.particles = [];
+      this.debug = true;
     }
 
     update(deltaTime) {
       if (!this.gameOver) this.gameTime += deltaTime;
       if (this.gameTime > this.gameTimeLimit) this.gameOver = true;
-      this.player.update();
+      this.background.update();
+      this.background.layer4.update();
+      this.player.update(deltaTime);
       if (this.ammoTimer > this.ammoInterval) {
         if (this.ammo < this.maxAmmo) this.ammo++;
         this.ammoTimer = 0;
@@ -266,15 +460,36 @@ window.onload = function () {
         // check player to enemy collision.
         if (this.checkCollision(this.player, enemy)) {
           enemy.markedForDeletion = true;
+          for (let i = 0; i < 5; i++) {
+            // particles
+            this.particles.push(
+              new Particle(
+                this,
+                enemy.x + enemy.width * 0.5,
+                enemy.y + enemy.height * 0.5
+              )
+            );
+          }
+          if (enemy.type === "lucky") this.player.enterPowerUp();
+          else this.score--;
         }
         // check projectile to enemy collision.
         this.player.projectiles.forEach((projectile) => {
           if (this.checkCollision(projectile, enemy)) {
             enemy.lives--;
             projectile.markedForDeletion = true;
+            // particles
+            this.particles.push(
+              new Particle(
+                this,
+                enemy.x + enemy.width * 0.5,
+                enemy.y + enemy.height * 0.5
+              )
+            );
 
             if (enemy.lives <= 0) {
               enemy.markedForDeletion = true;
+              for (let i = 0; i < 5; i++) {}
               if (!this.gameOver) this.score += enemy.score;
               if (this.score > this.winningScore) this.gameOver = true;
             }
@@ -290,18 +505,31 @@ window.onload = function () {
       } else {
         this.enemyTimer += deltaTime;
       }
+
+      // particles
+      this.particles.forEach((particle) => particle.update());
+      this.particles = this.particles.filter(
+        (particle) => !particle.markedForDeletion
+      );
     }
 
     draw(context) {
+      this.background.draw(context);
       this.player.draw(context);
-      this.ui.draw(context);
       this.enemies.forEach((enemy) => {
         enemy.draw(context);
       });
+      this.particles.forEach((particle) => particle.draw(context));
+      this.ui.draw(context);
+      this.background.layer4.draw(context);
     }
 
     addEnemy() {
-      this.enemies.push(new Angler1(this));
+      const randomize = Math.random();
+
+      if (randomize < 0.3) this.enemies.push(new Angler1(this));
+      else if (randomize < 0.5) this.enemies.push(new Angler2(this));
+      else this.enemies.push(new LuckyFish(this));
     }
 
     checkCollision(rect1, rect2) {

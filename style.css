@@ -35,6 +35,8 @@ canvas {
 #projectile,
 #gears,
 #hiveWhale,
-#hiveWhaleDrone {
+#hiveWhaleDrone,
+#fireExplosion,
+#smokeExplosion {
   display: none;
 }

@@ -397,6 +397,63 @@ window.onload = function () {
     }
   }
 
+  class Explosion {
+    constructor(game, x, y) {
+      this.game = game;
+      this.frameX = 0;
+      this.spriteHeight = 200;
+      this.fps = 30;
+      this.timer = 0;
+      this.interval = 1000 / this.fps;
+      this.markedForDeletion = false;
+      this.maxFrame = 8;
+    }
+
+    update(deltaTime) {
+      this.x -= this.game.gameSpeed;
+      if (this.timer > this.interval) {
+        this.frameX++;
+        this.timer = 0;
+      } else {
+        this.timer += deltaTime;
+      }
+      if (this.frameX > this.maxFrame) this.markedForDeletion = true;
+    }
+
+    draw(context) {
+      context.drawImage(
+        this.image,
+        this.frameX * this.spriteWidth,
+        0,
+        this.spriteWidth,
+        this.spriteHeight,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+    }
+  }
+
+  class SmokeExplosion extends Explosion {
+    constructor(game, x, y) {
+      super(game, x, y);
+      this.image = document.getElementById("smokeExplosion");
+      this.spriteWidth = 200;
+      this.width = this.spriteWidth;
+      this.height = this.spriteHeight;
+      this.x = x - this.width * 0.5;
+      this.y = y - this.height * 0.5;
+    }
+  }
+
+  class FireExplosion extends Explosion {
+    constructor(game, x, y) {
+      super(game, x, y);
+      this.image = document.getElementById("fireExplosion");
+    }
+  }
+
   class UI {
     constructor(game) {
       this.game = game;
@@ -476,6 +533,7 @@ window.onload = function () {
       this.gameTime = 0;
       this.gameTimeLimit = 15000;
       this.particles = [];
+      this.explosions = [];
       this.debug = false;
     }
 
@@ -498,6 +556,7 @@ window.onload = function () {
         // check player to enemy collision.
         if (this.checkCollision(this.player, enemy)) {
           enemy.markedForDeletion = true;
+          this.addExplosion(enemy);
           for (let i = 0; i < enemy.score; i++) {
             // particles
             this.particles.push(
@@ -528,7 +587,7 @@ window.onload = function () {
             );
 
             if (enemy.lives <= 0) {
-              enemy.markedForDeletion = true;
+              // enemy.markedForDeletion = true;
               for (let i = 0; i < enemy.score; i++) {
                 this.particles.push(
                   new Particle(
@@ -539,6 +598,7 @@ window.onload = function () {
                 );
               }
               enemy.markedForDeletion = true;
+              this.addExplosion(enemy);
               if (enemy.type === "hiveWhale") {
                 for (let i = 0; i < 5; i++) {
                   this.enemies.push(
@@ -571,6 +631,12 @@ window.onload = function () {
       this.particles = this.particles.filter(
         (particle) => !particle.markedForDeletion
       );
+
+      // explosions update
+      this.explosions.forEach((explosion) => explosion.update(deltaTime));
+      this.explosions = this.explosions.filter(
+        (explosion) => !explosion.markedForDeletion
+      );
     }
 
     draw(context) {
@@ -581,6 +647,7 @@ window.onload = function () {
       this.enemies.forEach((enemy) => {
         enemy.draw(context);
       });
+      this.explosions.forEach((explosion) => explosion.draw(context));
       this.background.layer4.draw(context);
     }
 
@@ -591,6 +658,18 @@ window.onload = function () {
       else if (randomize < 0.5) this.enemies.push(new Angler2(this));
       else if (randomize < 0.8) this.enemies.push(new HiveWhale(this));
       else this.enemies.push(new LuckyFish(this));
+    }
+
+    addExplosion(enemy) {
+      const randomize = Math.random();
+      if (randomize < 1)
+        this.explosions.push(
+          new SmokeExplosion(
+            this,
+            enemy.x + enemy.width * 0.5,
+            enemy.y + enemy.height * 0.5
+          )
+        );
     }
 
     checkCollision(rect1, rect2) {
@@ -612,8 +691,8 @@ window.onload = function () {
     const deltaTime = timeStamp - lastTime;
     lastTime = timeStamp;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    game.update(deltaTime);
     game.draw(ctx);
+    game.update(deltaTime);
     requestAnimationFrame(animate);
   }
 

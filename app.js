@@ -83,7 +83,7 @@ window.onload = function () {
     update() {
       this.angle += this.velocltyAngle;
       this.speedY += this.gravity;
-      this.x -= this.speedX;
+      this.x -= this.speedX + this.game.speed;
       this.y += this.speedY;
 
       if (this.y > this.game.height + this.size || this.x < 0 - this.size)
@@ -99,14 +99,18 @@ window.onload = function () {
 
     draw(context) {
       context.save();
+      context.translate(this.x, this.y);
+      context.rotate(this.angle);
       context.drawImage(
         this.image,
         this.frameX * this.spriteSize,
         this.frameY * this.spriteSize,
         this.spriteSize,
         this.spriteSize,
-        this.x,
-        this.y,
+        0,
+        0,
+        this.size * -0.5,
+        this.size * -0.5,
         this.size,
         this.size
       );

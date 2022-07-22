@@ -235,7 +235,7 @@ window.onload = function () {
     constructor(game) {
       this.game = game;
       this.x = this.game.width;
-      this.speedX = Math.random() * -1.5 - 0.5;
+      this.speedX = Math.random() * -1.5 - 1.5;
       this.markedForDeletion = false;
 
       this.frameX = 0;
@@ -287,7 +287,7 @@ window.onload = function () {
       this.height = 169;
       this.lives = 2;
       this.score = this.lives;
-      this.y = Math.random() * (this.game.height * 0.9 - this.height);
+      this.y = Math.random() * (this.game.height * 0.95 - this.height);
       this.image = document.getElementById("angler1");
       this.frameY = Math.floor(Math.random() * 3);
     }
@@ -300,7 +300,7 @@ window.onload = function () {
       this.height = 165;
       this.lives = 3;
       this.score = this.lives;
-      this.y = Math.random() * (this.game.height * 0.9 - this.height);
+      this.y = Math.random() * (this.game.height * 0.95 - this.height);
       this.image = document.getElementById("angler2");
       this.frameY = Math.floor(Math.random() * 2);
     }
@@ -314,9 +314,24 @@ window.onload = function () {
       this.lives = 3;
       this.score = 15;
       this.type = "lucky";
-      this.y = Math.random() * (this.game.height * 0.9 - this.height);
+      this.y = Math.random() * (this.game.height * 0.95 - this.height);
       this.image = document.getElementById("lucky");
       this.frameY = Math.floor(Math.random() * 2);
+    }
+  }
+
+  class HiveWhale extends Enemy {
+    constructor(game) {
+      super(game);
+      this.width = 400;
+      this.height = 227;
+      this.lives = 15;
+      this.score = 15;
+      this.type = "hiveWhale";
+      this.y = Math.random() * (this.game.height * 0.95 - this.height);
+      this.image = document.getElementById("hiveWhale");
+      this.frameY = 0;
+      this.speedX = Math.random() * -1.2 - 0.2;
     }
   }
 
@@ -536,6 +551,7 @@ window.onload = function () {
 
       if (randomize < 0.3) this.enemies.push(new Angler1(this));
       else if (randomize < 0.5) this.enemies.push(new Angler2(this));
+      else if (randomize < 0.8) this.enemies.push(new HiveWhale(this));
       else this.enemies.push(new LuckyFish(this));
     }
 

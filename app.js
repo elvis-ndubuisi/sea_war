@@ -285,7 +285,7 @@ window.onload = function () {
       super(game);
       this.width = 228;
       this.height = 169;
-      this.lives = 2;
+      this.lives = 5;
       this.score = this.lives;
       this.y = Math.random() * (this.game.height * 0.95 - this.height);
       this.image = document.getElementById("angler1");
@@ -298,7 +298,7 @@ window.onload = function () {
       super(game);
       this.width = 213;
       this.height = 165;
-      this.lives = 3;
+      this.lives = 5;
       this.score = this.lives;
       this.y = Math.random() * (this.game.height * 0.95 - this.height);
       this.image = document.getElementById("angler2");
@@ -311,8 +311,8 @@ window.onload = function () {
       super(game);
       this.width = 99;
       this.height = 95;
-      this.lives = 3;
-      this.score = 15;
+      this.lives = 5;
+      this.score = 5;
       this.type = "lucky";
       this.y = Math.random() * (this.game.height * 0.95 - this.height);
       this.image = document.getElementById("lucky");
@@ -325,7 +325,7 @@ window.onload = function () {
       super(game);
       this.width = 400;
       this.height = 227;
-      this.lives = 15;
+      this.lives = 20;
       this.score = 15;
       this.type = "hiveWhale";
       this.y = Math.random() * (this.game.height * 0.95 - this.height);
@@ -522,16 +522,16 @@ window.onload = function () {
       this.ammo = 20;
       this.maxAmmo = 50;
       this.ammoTimer = 0;
-      this.ammoInterval = 500;
+      this.ammoInterval = 350;
       this.enemies = [];
       this.enemyTimer = 0;
-      this.enemyInterval = 1000;
+      this.enemyInterval = 2000;
       this.gameOver = false;
       this.gameSpeed = 1;
       this.score = 0;
-      this.winningScore = 10;
+      this.winningScore = 100;
       this.gameTime = 0;
-      this.gameTimeLimit = 15000;
+      this.gameTimeLimit = 35000;
       this.particles = [];
       this.explosions = [];
       this.debug = false;
@@ -568,7 +568,7 @@ window.onload = function () {
             );
           }
           if (enemy.type === "lucky") this.player.enterPowerUp();
-          else this.score--;
+          else if (!this.gameOver) this.score--;
         }
 
         // check projectile to enemy collision.
@@ -655,8 +655,8 @@ window.onload = function () {
       const randomize = Math.random();
 
       if (randomize < 0.3) this.enemies.push(new Angler1(this));
-      else if (randomize < 0.5) this.enemies.push(new Angler2(this));
-      else if (randomize < 0.8) this.enemies.push(new HiveWhale(this));
+      else if (randomize < 0.6) this.enemies.push(new Angler2(this));
+      else if (randomize < 0.7) this.enemies.push(new HiveWhale(this));
       else this.enemies.push(new LuckyFish(this));
     }
 

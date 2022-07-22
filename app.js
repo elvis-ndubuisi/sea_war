@@ -76,7 +76,7 @@ window.onload = function () {
       this.markedForDeletion = false;
       this.angle = 0;
       this.velocltyAngle = Math.random() * 0.2 - 0.1;
-      this.bounced = false;
+      this.bounced = 0;
       this.bottomBounceBoundary = Math.random() * 100 + 60;
     }
 
@@ -90,14 +90,15 @@ window.onload = function () {
         this.markedForDeletion = true;
       if (
         this.y > this.game.height - this.bottomBounceBoundary &&
-        !this.bounced
+        this.bounced < 2
       ) {
-        this.bounced = true;
+        this.bounced++;
         this.speedY *= -0.5;
       }
     }
 
     draw(context) {
+      context.save();
       context.drawImage(
         this.image,
         this.frameX * this.spriteSize,
@@ -109,9 +110,8 @@ window.onload = function () {
         this.size,
         this.size
       );
+      context.restore();
     }
-
-    bounce() {}
   }
 
   class Player {

@@ -28,6 +28,12 @@ window.onload = function () {
           this.game.keys.splice(this.game.keys.indexOf(e.key), 1);
         }
       });
+
+      window.addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && this.game.gameOver) {
+          this.game.startGame();
+        }
+      });
     }
   }
 
@@ -126,7 +132,7 @@ window.onload = function () {
       this.x = 20;
       this.y = 100;
       this.speedY = 0;
-      this.maxSpeed = 2;
+      this.maxSpeed = 4;
       this.projectiles = [];
       this.image = document.getElementById("player");
       this.frameX = 0;
@@ -228,6 +234,14 @@ window.onload = function () {
       this.powerUp = true;
       if (this.game.ammo < this.game.maxAmmo)
         this.game.ammo = this.game.maxAmmo;
+    }
+
+    restartGame() {
+      this.x = 20;
+      this.y = 100;
+      this.frameX = 0;
+      this.frameY = 0;
+      this.projectiles = [];
     }
   }
 
@@ -380,11 +394,11 @@ window.onload = function () {
       this.image1 = document.getElementById("layer1");
       this.layer1 = new Layer(game, this.image1, 1);
       this.image2 = document.getElementById("layer1");
-      this.layer2 = new Layer(game, this.image2, 1);
+      this.layer2 = new Layer(game, this.image2, 0.8);
       this.image3 = document.getElementById("layer3");
-      this.layer3 = new Layer(game, this.image3, 1);
+      this.layer3 = new Layer(game, this.image3, 0.6);
       this.image4 = document.getElementById("layer4");
-      this.layer4 = new Layer(game, this.image4, 1);
+      this.layer4 = new Layer(game, this.image4, 0.4);
       this.layers = [this.layer1, this.layer2, this.layer3];
     }
 
@@ -485,13 +499,17 @@ window.onload = function () {
         context.textAlign = "center";
         let message1;
         let message2;
+        let message3 = "Press ENTER to start/restart game";
 
-        if (this.game.score > this.game.winningScore) {
-          message1 = "Most Wondrous!";
-          message2 = "Well done explorer";
-        } else {
+        if (this.game.gameOver && this.game.score === 0) {
+          message1 = "Start a new game";
+          message2 = "I bet you can't beat the game";
+        } else if (this.game.score < this.game.winningScore) {
           message1 = "Blazes!";
           message2 = "Get my repair kit and try again";
+        } else if (this.game.score > this.game.winningScore) {
+          message1 = "Most Wondrous!";
+          message2 = "Well done explorer";
         }
         context.font = "50px " + this.fontFamily;
         context.fillText(
@@ -504,6 +522,11 @@ window.onload = function () {
           message2,
           this.game.width * 0.5,
           this.game.height * 0.5 + 40
+        );
+        context.fillText(
+          message3,
+          this.game.width * 0.5,
+          this.game.height * 0.5 + 80
         );
       }
       context.restore();
@@ -526,12 +549,12 @@ window.onload = function () {
       this.enemies = [];
       this.enemyTimer = 0;
       this.enemyInterval = 2000;
-      this.gameOver = false;
-      this.gameSpeed = 1;
+      this.gameOver = true;
+      this.gameSpeed = 2.4;
       this.score = 0;
       this.winningScore = 100;
       this.gameTime = 0;
-      this.gameTimeLimit = 35000;
+      this.gameTimeLimit = 1000 * 120;
       this.particles = [];
       this.explosions = [];
       this.debug = false;
@@ -605,7 +628,7 @@ window.onload = function () {
                     new HiveWhaleDrone(
                       this,
                       enemy.x + Math.random() * enemy.width,
-                      enemy.y + Math.random() * enemy.height * 0.6
+                      enemy.y + Math.random() * enemy.height * 0.8
                     )
                   );
                 }
@@ -688,6 +711,31 @@ window.onload = function () {
         rect1.y < rect2.y + rect2.height &&
         rect1.height + rect1.y > rect2.y
       );
+    }
+
+    startGame() {
+      // this.background = new Background(this);
+      this.player = new Player(this);
+      // this.inputHandler = new InputHandler(this);
+      this.ui = new UI(this);
+      this.keys = [];
+      this.ammo = 20;
+      this.maxAmmo = 50;
+      this.ammoTimer = 0;
+      this.ammoInterval = 350;
+      this.enemies = [];
+      this.enemyTimer = 0;
+      this.enemyInterval = 2000;
+      this.gameOver = false;
+      // this.gameSpeed = 2.4;
+      this.score = 0;
+      // this.winningScore = 100;
+      this.gameTime = 0;
+      this.gameTimeLimit = 35000;
+      this.particles = [];
+      this.explosions = [];
+
+      this.player.restartGame();
     }
   }
 

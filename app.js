@@ -554,7 +554,7 @@ window.onload = function () {
       this.score = 0;
       this.winningScore = 100;
       this.gameTime = 0;
-      this.gameTimeLimit = 1000 * 120;
+      this.gameTimeLimit = 1000 * 140;
       this.particles = [];
       this.explosions = [];
       this.debug = false;
@@ -677,9 +677,9 @@ window.onload = function () {
     addEnemy() {
       const randomize = Math.random();
 
-      if (randomize < 0.3) this.enemies.push(new Angler1(this));
-      else if (randomize < 0.6) this.enemies.push(new Angler2(this));
-      else if (randomize < 0.7) this.enemies.push(new HiveWhale(this));
+      if (randomize < 0.4) this.enemies.push(new Angler1(this));
+      else if (randomize < 0.7) this.enemies.push(new Angler2(this));
+      else if (randomize < 0.9) this.enemies.push(new HiveWhale(this));
       else this.enemies.push(new LuckyFish(this));
     }
 

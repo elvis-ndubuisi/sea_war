@@ -4,6 +4,6 @@ Sea War side-scroller action 2d web game build with HTML5, CSS3 and JavaScript -
 
 ## Game Screen
 
-![ScreenShot](./assets/screen.png)
+![ScreenShot](./assets/sea-war-start.PNG)
 
-_Play_ [Game](https://seawar.netlify.app)
+[Play Game](https://seawar.netlify.app)

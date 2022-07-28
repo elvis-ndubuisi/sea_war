@@ -2,8 +2,6 @@ window.onload = function () {
   const canvas = document.getElementById("canvas1");
   const ctx = canvas.getContext("2d");
 
-  // TODO: add banger fonts from google fonts.
-
   canvas.width = 1500;
   canvas.height = 500;
 
@@ -472,7 +470,7 @@ window.onload = function () {
     constructor(game) {
       this.game = game;
       this.fontSize = 25;
-      this.fontFamily = "Ubuntu"; /* change fonts to bangers */
+      this.fontFamily = "Bangers";
       this.color = "white";
     }
 
